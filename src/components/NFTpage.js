@@ -26,18 +26,20 @@ export default function NFTPage(props) {
     );
     //create an NFT Token
     var tokenURI = await contract.tokenURI(tokenId);
-    const listedToken = await contract.getListedTokenForId(tokenId);
+    const listedToken = await contract.getLatestListedTokenById(tokenId);
     tokenURI = GetIpfsUrlFromPinata(tokenURI);
+    console.log("uri is", tokenURI);
     let meta = await axios.get(tokenURI);
     meta = meta.data;
-    console.log(listedToken);
+    // console.log(listedToken, "lt");
+    console.log("meeeta", meta.data);
 
     let item = {
       price: meta.price,
       tokenId: tokenId,
       seller: listedToken.seller,
       owner: listedToken.owner,
-      image: meta.image,
+      image: meta.file,
       name: meta.name,
       description: meta.description,
     };
@@ -80,13 +82,13 @@ export default function NFTPage(props) {
   const tokenId = params.tokenId;
   if (!dataFetched) getNFTData(tokenId);
   if (typeof data.image == "string")
-    data.image = GetIpfsUrlFromPinata(data.image);
+    data.image = GetIpfsUrlFromPinata(data.image.slice(7));
 
   return (
     <div style={{ "min-height": "100vh" }}>
       <Navbar></Navbar>
       <div className="flex ml-20 mt-20">
-        <img src={data.image} alt="" className="w-2/5" />
+        <img src={data.image} alt="" className="w-2/5 h-[500px] object-cover" />
         <div className="text-xl ml-20 space-y-8 text-white shadow-2xl rounded-lg border-2 p-5">
           <div>Name: {data.name}</div>
           <div>Description: {data.description}</div>
