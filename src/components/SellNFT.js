@@ -1,6 +1,6 @@
 import Navbar from "./Navbar";
 import { useState } from "react";
-import { uploadFileToIPFS, uploadJSONToIPFS } from "../pinata";
+import { uploadFileToIPFS, uploadJSONToIPFS, uploadMetadata } from "../pinata";
 import Marketplace from "../Marketplace.json";
 import { useLocation } from "react-router";
 
@@ -21,11 +21,12 @@ export default function SellNFT() {
       //    disableButton();
       updateMessage("Uploading image.. please dont click anything!");
       const response = await uploadFileToIPFS(file);
-      if (response.success === true) {
+      console.log("upload file res is", response);
+      if (response.data) {
         //  enableButton();
         updateMessage("");
-        console.log("Uploaded image to Pinata: ", response.pinataURL);
-        setFileURL(response.pinataURL);
+        console.log("Uploaded image to Pinata: ", response.data.IpfsHash);
+        setFileURL(response.data.IpfsHash);
       }
     } catch (e) {
       console.log("Error during file upload", e);
@@ -38,7 +39,7 @@ export default function SellNFT() {
       updateMessage("Please fill all the fields!");
       return -1;
     }
-
+    console.log("iploadinnngg.");
     const nftJSON = {
       name,
       description,
@@ -48,11 +49,14 @@ export default function SellNFT() {
 
     try {
       //upload the metadata JSON to IPFS
-      const response = await uploadJSONToIPFS(nftJSON);
-      if (response.success === true) {
-        console.log("Uploaded JSON to Pinata: ", response);
-        return response.pinataURL;
+      const metadataResponse = await uploadMetadata(nftJSON);
+
+      if (metadataResponse) {
+        // settokenUri(metadataResponse);
+        console.log("Uploaded JSON to Pinata: ", metadataResponse);
+        return metadataResponse;
       }
+      // const response = await uploadJSONToIPFS(nftJSON);
     } catch (e) {
       console.log("error uploading JSON metadata:", e);
     }

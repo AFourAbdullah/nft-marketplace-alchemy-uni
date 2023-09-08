@@ -49,7 +49,7 @@ function Navbar() {
         updateButton();
         console.log("here");
         getAddress();
-        window.location.replace(location.pathname);
+        // window.location.replace(location.pathname);
       });
   }
 
