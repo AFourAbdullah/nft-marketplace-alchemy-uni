@@ -1,34 +1,33 @@
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-ethers");
-const fs = require('fs');
+const fs = require("fs");
 // const infuraId = fs.readFileSync(".infuraid").toString().trim() || "";
 
-task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
-  const accounts = await hre.ethers.getSigners();
+require("dotenv").config();
 
-  for (const account of accounts) {
-    console.log(account.address);
-  }
-});
+/**
+ * @type import('hardhat/config').HardhatUserConfig
+ */
+const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL;
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
+const COINMARKET_API_KEY = process.env.COINMARKET_API_KEY;
 
+/** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  defaultNetwork: "hardhat",
+  solidity: "0.8.18",
   networks: {
-    hardhat: {
-      chainId: 1337
+    sepolia: {
+      url: SEPOLIA_RPC_URL,
+      accounts: [PRIVATE_KEY],
+      chainId: 11155111,
+      blockConfirmations: 6,
     },
-    goerli: {
-      url: "<YOUR_ALCHEMY_URL>",
-      accounts: [ "<YOUR_PRIVATE_KEY>" ]
-    }
   },
-  solidity: {
-    version: "0.8.4",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200
-      }
-    }
-  }
+  etherscan: {
+    apiKey: ETHERSCAN_API_KEY,
+  },
+  paths: {
+    artifacts: "./client/src/artifacts",
+  },
 };

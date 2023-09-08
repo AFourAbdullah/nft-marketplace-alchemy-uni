@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.18;
 import "hardhat/console.sol";
 //OpenZeppelin's NFT Standard Contracts. We will extend functions from this in our implementation
 import "@openzeppelin/contracts/utils/Counters.sol";
@@ -11,10 +11,10 @@ contract NftMarkteplace is ERC721URIStorage{
 address public owner;
 uint256 listFee=0.01 ether;
 using Counters for Counters.Counter;
-Counters.Counter private itemsSold=0;
-Counters.Counter private tokenIds=0;
+Counters.Counter private itemsSold;
+Counters.Counter private tokenIds;
 
-constructor(){
+constructor() ERC721("NFTMarketplace", "NFTM"){
     owner=payable(msg.sender);
 }
 
@@ -38,7 +38,7 @@ function updateListPrice(uint256 _listPrice) public payable{
 
 }
   function getListPrice() public view returns (uint256) {
-        return listPrice;
+        return listFee;
     }
 
     //to get the latest listed nft on marketplac
@@ -60,16 +60,16 @@ function updateListPrice(uint256 _listPrice) public payable{
       _setTokenURI(currentTokenId,_uri);
       createListedToken(currentTokenId,_price);
 
-       return newTokenId;
+       return currentTokenId;
 
     }
-    function createListedToken(uint256 tokenId,uint256 _price) private  returns () {
+    function createListedToken(uint256 tokenId,uint256 _price) private   {
         idToListedToken[tokenId]=ListedToken(
             tokenId,
             payable(address(this)),
             payable(msg.sender),
             _price,true
-        )
+        );
         _transfer(msg.sender,address(this),tokenId);
         allNftsOnMarketplace.push(
             ListedToken(
@@ -118,8 +118,8 @@ function updateListPrice(uint256 _listPrice) public payable{
         return myNfts;
     }
 
-    function executeSale(_tokenId) public payable{
-uint256 price=idToListedToken[_tokenId];
+    function executeSale(uint256 _tokenId) public payable{
+uint256 price=idToListedToken[_tokenId].price;
 require(msg.value==price,"Please pay the asking price for nft");
 address seller=idToListedToken[_tokenId].seller; //the seller of nft
 
@@ -129,8 +129,8 @@ _transfer(address(this),msg.sender,_tokenId);
 
 //the below will ensure that if someone buys an nft he is allowing the marketplace contract to sell the nft on behalf of actual owner
 approve(address(this),_tokenId);
-payable(owner).tranfer(listFee);
-payable(seller).tranfer(msg.value);
+payable(owner).transfer(listFee);
+payable(seller).transfer(msg.value);
 
 
 
