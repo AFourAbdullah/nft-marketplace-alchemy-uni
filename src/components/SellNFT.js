@@ -19,11 +19,11 @@ export default function SellNFT() {
     try {
       //upload the file to IPFS
       //    disableButton();
-      //    updateMessage("Uploading image.. please dont click anything!");
+      updateMessage("Uploading image.. please dont click anything!");
       const response = await uploadFileToIPFS(file);
       if (response.success === true) {
         //  enableButton();
-        //  updateMessage("");
+        updateMessage("");
         console.log("Uploaded image to Pinata: ", response.pinataURL);
         setFileURL(response.pinataURL);
       }
@@ -31,6 +31,64 @@ export default function SellNFT() {
       console.log("Error during file upload", e);
     }
   }
+  async function uploadMetadataToIPFS() {
+    const { name, description, price } = formParams;
+    //Make sure that none of the fields are empty
+    if (!name || !description || !price || !fileURL) {
+      updateMessage("Please fill all the fields!");
+      return -1;
+    }
+
+    const nftJSON = {
+      name,
+      description,
+      price,
+      image: fileURL,
+    };
+
+    try {
+      //upload the metadata JSON to IPFS
+      const response = await uploadJSONToIPFS(nftJSON);
+      if (response.success === true) {
+        console.log("Uploaded JSON to Pinata: ", response);
+        return response.pinataURL;
+      }
+    } catch (e) {
+      console.log("error uploading JSON metadata:", e);
+    }
+  }
+
+  async function ListNft(e) {
+    e.preventDefault();
+    try {
+      const metadataUrl = await uploadMetadataToIPFS();
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      if (!provider) {
+        alert("please install metamask");
+      }
+      const signer = provider.getSigner();
+      updateMessage("Please wait uploading....");
+      let contract = new ethers.Contract(
+        Marketplace.address,
+        Marketplace.abi,
+        signer
+      );
+      const price = ethers.utils.parseEther(formParams.price, "ether");
+      let listingFee = await contract.getListPrice();
+      listingFee = listingFee.toString();
+      let transaction = await contract.createToken(metadataUrl, price, {
+        value: listingFee,
+      });
+      await transaction.wait();
+      alert("Successfully Listed your nft");
+      updateMessage("");
+      updateFormParams({ name: "", description: "", price: "" });
+      window.location.replace("/");
+    } catch (error) {
+      alert("uploading error is: ", e);
+    }
+  }
+
   return (
     <div className="">
       <Navbar></Navbar>
@@ -107,7 +165,7 @@ export default function SellNFT() {
           <br></br>
           <div className="text-red-500 text-center">{message}</div>
           <button
-            onClick={""}
+            onClick={ListNft}
             className="font-bold mt-10 w-full bg-purple-500 text-white rounded p-2 shadow-lg"
             id="list-button"
           >
